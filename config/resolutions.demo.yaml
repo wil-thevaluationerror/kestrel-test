@@ -1,0 +1,111 @@
+# Worked example of the human review loop: one signed decision per blocking exception
+# raised by the seeded defect set. Used by `make run-resolved` and by the resolution test.
+#
+# Decisions: accept (rule fired correctly, the case is legitimate), correct (supply the
+# right value and its source; applied as an override that keeps the filed value), or
+# exclude (hold the holding out of the period's report).
+#
+# A correction never edits data/raw/. It is stored against the original cell.
+resolutions:
+  - exception_id: EX-2026Q2-GE-A-R03
+    decision: correct
+    target:
+      table: metrics
+      keys: {holding_id: GE-A, period_label: 2026Q2, metric: cash_flow_investing, sub_period: 2026Q2}
+      column: value
+    corrected_value: -462937
+    source: "Email from Thornbury Analytics CFO, revised cash bridge v2, 2026-10-06"
+    reviewer: W. Butler-Croutwater
+    date: 2026-10-06
+    rationale: "Company omitted a $48.2K equipment payment from the investing line; bridge ties after the restatement."
+
+  - exception_id: EX-2026Q2-GE-B-I01-NET-SALES
+    decision: correct
+    target:
+      table: metrics
+      keys: {holding_id: GE-B, period_label: 2026Q2, metric: revenue, sub_period: 2026Q2}
+      column: value
+    corrected_value: 7853000
+    source: "Veritas Fleet Systems Q2 2026 reporting pack, P&L sheet cell B5"
+    reviewer: W. Butler-Croutwater
+    date: 2026-10-06
+    rationale: "Company renamed 'Total Revenue' to 'Net Sales'; same line, same basis. Mapping update to v1.1.0 is queued for Q3 so the label maps on its own next quarter."
+
+  - exception_id: EX-2026Q2-GV-A-R04
+    decision: correct
+    target:
+      table: cap_table
+      keys: {holding_id: GV-A, period_label: 2026Q2, holder: Founders}
+      column: ownership_pct
+    corrected_value: 47.8
+    source: "Ridgeline Bio cap table, share count column: 4,780,000 of 10,000,000 shares"
+    reviewer: W. Butler-Croutwater
+    date: 2026-10-06
+    rationale: "Ownership percentage column was stale; founder share count in the same file supports 47.8%, which restores the table to 100%."
+
+  - exception_id: EX-2026Q2-RE-A-I02
+    decision: accept
+    source: "data/raw/2026Q2/real_estate/RE-A_harborview-logistics-park_2026Q2.xlsx"
+    reviewer: W. Butler-Croutwater
+    date: 2026-10-06
+    rationale: "Second submission is byte-identical to the first. The original is retained and the duplicate was not loaded, so no figure is double counted."
+
+  - exception_id: EX-2026Q2-RE-B-R07-REVENUE
+    decision: correct
+    target:
+      table: metrics
+      keys: {holding_id: RE-B, period_label: 2026Q2, metric: revenue, sub_period: 2026Q2}
+      column: value
+    corrected_value: 3844000
+    source: "Maumee Ridge Solar manager call 2026-10-06: Q2 pack was filed in thousands"
+    reviewer: W. Butler-Croutwater
+    date: 2026-10-06
+    rationale: "Q2 submission switched to thousands without telling us. Restated to USD; the thousands presentation rounds to the nearest $100, which is immaterial at this level."
+
+  - exception_id: EX-2026Q2-RE-B-R07-OPEX
+    decision: correct
+    target:
+      table: metrics
+      keys: {holding_id: RE-B, period_label: 2026Q2, metric: opex, sub_period: 2026Q2}
+      column: value
+    corrected_value: 1356500
+    source: "Maumee Ridge Solar manager call 2026-10-06: Q2 pack was filed in thousands"
+    reviewer: W. Butler-Croutwater
+    date: 2026-10-06
+    rationale: "Same thousands restatement as the revenue line for this property; see EX-2026Q2-RE-B-R07-REVENUE."
+
+  - exception_id: EX-2026Q2-RE-B-R07-NOI
+    decision: correct
+    target:
+      table: metrics
+      keys: {holding_id: RE-B, period_label: 2026Q2, metric: noi, sub_period: 2026Q2}
+      column: value
+    corrected_value: 2487500
+    source: "Maumee Ridge Solar manager call 2026-10-06: Q2 pack was filed in thousands"
+    reviewer: W. Butler-Croutwater
+    date: 2026-10-06
+    rationale: "Same thousands restatement; restated NOI still equals restated revenue less restated opex."
+
+  - exception_id: EX-2026Q2-RE-B-R07-DEBT-BALANCE
+    decision: correct
+    target:
+      table: metrics
+      keys: {holding_id: RE-B, period_label: 2026Q2, metric: debt_balance, sub_period: 2026Q2}
+      column: value
+    corrected_value: 32944000
+    source: "Maumee Ridge Solar lender statement, 30 June 2026"
+    reviewer: W. Butler-Croutwater
+    date: 2026-10-06
+    rationale: "Same thousands restatement; balance confirmed independently against the lender statement."
+
+  - exception_id: EX-2026Q2-FUND-R08
+    decision: correct
+    target:
+      table: lp_capital
+      keys: {lp_id: LP-017, period_label: 2026Q2}
+      column: called_usd
+    corrected_value: 2210000
+    source: "Fund administrator capital account statement for LP-017, Q2 2026"
+    reviewer: W. Butler-Croutwater
+    date: 2026-10-06
+    rationale: "LP-017's called capital was understated by $312,500 in the LP extract; the administrator statement confirms $2,210,000 and the schedule then ties to the fund total."

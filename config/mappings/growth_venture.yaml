@@ -1,0 +1,10 @@
+# Source label -> canonical metric for the venture monthly reporting template.
+template: growth_venture
+mapping_version: "1.0.0"
+unit_scale: dollars
+scale_overrides: []
+labels:
+  "Monthly Revenue":  {metric: revenue}
+  "Net Burn":         {metric: net_burn}
+  "Ending Cash":      {metric: cash_end}
+ignore_labels: ["Company", "Period Ending", "Reporting Currency", "Line Item"]

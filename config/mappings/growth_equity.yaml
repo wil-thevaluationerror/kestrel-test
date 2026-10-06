@@ -1,0 +1,16 @@
+# Source label -> canonical metric for the growth equity P&L + cash bridge template.
+template: growth_equity
+mapping_version: "1.0.0"
+unit_scale: dollars
+scale_overrides: []
+labels:
+  "Total Revenue":           {metric: revenue}
+  "Gross Profit":            {metric: gross_profit}
+  "EBITDA":                  {metric: ebitda}
+  "Beginning Cash":          {metric: cash_begin}
+  "Cash from Operations":    {metric: cash_flow_operating}
+  "Cash from Investing":     {metric: cash_flow_investing}
+  "Cash from Financing":     {metric: cash_flow_financing}
+  "Ending Cash":             {metric: cash_end}
+  "Total Debt":              {metric: debt_balance}
+ignore_labels: ["Company", "Period Ending", "Reporting Currency", "Line Item"]

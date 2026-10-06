@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# Generated artifacts: reproducible from `make data` / `make run`, never hand-edited.
+data/raw/
+data/staged/
+data/warehouse.duckdb
+data/ground_truth.json
+outputs/
+.context/
+.demo-break/

@@ -1,0 +1,124 @@
+# Fictional fund definition for the synthetic data generator.
+# Everything here is invented. No real fund, LP, or portfolio company is represented.
+seed: 20260331
+
+fund:
+  fund_id: LPF1
+  name: "Lakeshore Partners Fund I"
+  vintage: 2023
+  total_commitments_usd: 250000000
+  lp_count: 40
+
+periods:
+  - label: 2026Q1
+    period_end: 2026-03-31
+    months: ["2026-01", "2026-02", "2026-03"]
+  - label: 2026Q2
+    period_end: 2026-06-30
+    months: ["2026-04", "2026-05", "2026-06"]
+
+holdings:
+  - holding_id: RE-A
+    name: "Harborview Logistics Park"
+    asset_class: real_estate
+    template: real_estate
+    report_format: xlsx
+    invested_capital_usd: 18500000
+    entry_date: 2023-11-15
+  - holding_id: RE-B
+    name: "Maumee Ridge Solar"
+    asset_class: real_estate
+    template: real_estate
+    report_format: xlsx
+    invested_capital_usd: 22750000
+    entry_date: 2024-03-01
+  - holding_id: RE-C
+    name: "Fifth & Vine Medical Office"
+    asset_class: real_estate
+    template: real_estate
+    report_format: xlsx
+    invested_capital_usd: 14200000
+    entry_date: 2024-09-30
+  - holding_id: GE-A
+    name: "Thornbury Analytics"
+    asset_class: growth_equity
+    template: growth_equity
+    report_format: xlsx
+    invested_capital_usd: 12000000
+    entry_date: 2024-02-14
+  - holding_id: GE-B
+    name: "Veritas Fleet Systems"
+    asset_class: growth_equity
+    template: growth_equity
+    report_format: xlsx
+    invested_capital_usd: 9500000
+    entry_date: 2024-06-28
+  - holding_id: GE-C
+    name: "Cardinal Rail Technologies"
+    asset_class: growth_equity
+    template: growth_equity
+    report_format: xlsx
+    invested_capital_usd: 15750000
+    entry_date: 2025-01-21
+  - holding_id: GV-A
+    name: "Ridgeline Bio"
+    asset_class: growth_venture
+    template: growth_venture
+    report_format: csv
+    invested_capital_usd: 4000000
+    entry_date: 2025-04-09
+  - holding_id: GV-B
+    name: "Tessera Labs"
+    asset_class: growth_venture
+    template: growth_venture
+    report_format: csv
+    invested_capital_usd: 3250000
+    entry_date: 2025-07-17
+  - holding_id: GV-C
+    name: "Bluffton Robotics"
+    asset_class: growth_venture
+    template: growth_venture
+    report_format: xlsx
+    invested_capital_usd: 5500000
+    entry_date: 2025-10-02
+
+# Defects are applied as named transforms on top of clean data. Setting `enabled: false`
+# regenerates the clean file byte-for-byte, which is what makes the false-positive test honest.
+# D03, D05, D06, D09 are specified in docs/SPEC.md but deferred to v1.1 with their rules.
+defects:
+  - id: D01
+    enabled: true
+    description: "Cap table ownership sums to 97.4% instead of 100%"
+    holding_id: GV-A
+    period: 2026Q2
+    expected_rule: R04
+  - id: D02
+    enabled: true
+    description: "'Total Revenue' renamed 'Net Sales' in the source template"
+    holding_id: GE-B
+    period: 2026Q2
+    expected_rule: I01
+  - id: D04
+    enabled: true
+    description: "Cash bridge does not tie; investing outflow understated by $48,200"
+    holding_id: GE-A
+    period: 2026Q2
+    expected_rule: R03
+  - id: D07
+    enabled: true
+    description: "Identical file submitted twice for the same holding and period"
+    holding_id: RE-A
+    period: 2026Q2
+    expected_rule: I02
+  - id: D08
+    enabled: true
+    description: "USD metrics reported in thousands with no declared scale change"
+    holding_id: RE-B
+    period: 2026Q2
+    expected_rule: R07
+  - id: D10
+    enabled: true
+    description: "Sum of LP called capital does not tie to fund called capital"
+    holding_id: FUND
+    period: 2026Q2
+    expected_rule: R08

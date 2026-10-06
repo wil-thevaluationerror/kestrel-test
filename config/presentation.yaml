@@ -1,0 +1,43 @@
+# How the fund summary is organised and what it leads with.
+#
+# Presentation only. Nothing here changes a canonical value, a rule, or a tolerance - it
+# decides which figure a reader sees first and how the page is grouped. It lives in config
+# rather than in the template so a partner can change the emphasis without touching code.
+#
+# `headline_metric`, `aggregate_metrics` and `lower_is_better` must exist in
+# config/metric_dictionary.yaml for the asset class; the loader rejects the file otherwise.
+#
+# `lower_is_better` decides which direction is coloured as good. Without it the summary would
+# paint rising operating expenses green, which is worse than using no colour at all. Anything
+# not listed is treated as better when it rises; a metric nobody agrees about should be moved
+# to `neutral_metrics` rather than guessed at.
+asset_classes:
+  real_estate:
+    tab_label: "Real estate & infrastructure"
+    short_label: "Real estate"
+    unit_noun: "properties"
+    headline_metric: noi
+    headline_caption: "Net operating income"
+    aggregate_metrics: [revenue, noi]
+    lower_is_better: [opex, debt_balance]
+    neutral_metrics: []
+  growth_equity:
+    tab_label: "Growth equity"
+    short_label: "Growth equity"
+    unit_noun: "companies"
+    headline_metric: revenue
+    headline_caption: "Revenue"
+    aggregate_metrics: [revenue, ebitda]
+    lower_is_better: [debt_balance]
+    # Cash flow lines are directional by context, not by sign: a large investing outflow can be
+    # a good quarter. They are left uncoloured rather than labelled good or bad.
+    neutral_metrics: [cash_flow_operating, cash_flow_investing, cash_flow_financing, cash_begin]
+  growth_venture:
+    tab_label: "Growth venture"
+    short_label: "Growth venture"
+    unit_noun: "companies"
+    headline_metric: revenue
+    headline_caption: "Revenue"
+    aggregate_metrics: [revenue, cash_end]
+    lower_is_better: []
+    neutral_metrics: []

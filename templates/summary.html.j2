@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ summary.fund_name }} — Portfolio summary {{ summary.period_label }}</title>
+<style>
+  :root {
+    --color-paper: oklch(98.6% 0.004 85);
+    --color-ink: oklch(22% 0.012 265);
+    --color-ink-soft: oklch(48% 0.012 265);
+    --color-rule: oklch(86% 0.008 265);
+    --color-rule-strong: oklch(32% 0.012 265);
+    --color-accent: oklch(42% 0.09 240);
+    --color-positive: oklch(45% 0.11 150);
+    --color-negative: oklch(48% 0.16 25);
+    --color-held: oklch(96% 0.05 70);
+    --color-held-ink: oklch(38% 0.11 60);
+    --color-pass: oklch(96% 0.04 150);
+    --color-surface: oklch(100% 0 0);
+    --color-surface-sunk: oklch(96.5% 0.004 85);
+
+    --radius: 3px;
+    --shadow-card: 0 1px 2px oklch(20% 0.02 265 / 0.05);
+    --shadow-card-hover: 0 6px 18px -6px oklch(20% 0.02 265 / 0.18);
+    --duration-fast: 140ms;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-text: ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+    --text-eyebrow: 0.6875rem;
+    --text-base: 0.875rem;
+    --text-lead: 1.0625rem;
+    --text-section: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    --text-display: clamp(2rem, 1.2rem + 3vw, 3.25rem);
+
+    --space-tight: 0.35rem;
+    --space-row: 0.6rem;
+    --space-block: 2rem;
+    --space-section: clamp(2.5rem, 2rem + 2vw, 4rem);
+    --measure: 68ch;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: var(--space-section) clamp(1.25rem, 4vw, 4.5rem) 4rem;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-text);
+    font-size: var(--text-base);
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .masthead {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(14rem, 1fr);
+    gap: var(--space-block);
+    align-items: end;
+    padding-bottom: var(--space-row);
+    border-bottom: 2px solid var(--color-rule-strong);
+  }
+  .eyebrow {
+    font-size: var(--text-eyebrow);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+    margin: 0 0 var(--space-tight);
+  }
+  .masthead h1 {
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    font-weight: 600;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .masthead .period {
+    font-family: var(--font-display);
+    font-size: var(--text-lead);
+    font-style: italic;
+    color: var(--color-ink-soft);
+    margin: var(--space-tight) 0 0;
+  }
+  .runmeta {
+    font-family: var(--font-mono);
+    font-size: var(--text-eyebrow);
+    color: var(--color-ink-soft);
+    text-align: right;
+    line-height: 1.7;
+  }
+  .runmeta b { color: var(--color-ink); font-weight: 600; }
+
+  .banner {
+    margin: var(--space-block) 0 0;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid var(--color-accent);
+    background: var(--color-pass);
+    font-size: var(--text-base);
+  }
+  .banner.held {
+    background: var(--color-held);
+    border-left-color: var(--color-held-ink);
+    color: var(--color-held-ink);
+  }
+  .banner strong { letter-spacing: 0.04em; }
+
+  .fundstrip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 1px;
+    margin: var(--space-block) 0 0;
+    background: var(--color-rule);
+    border: 1px solid var(--color-rule);
+  }
+  .fundstrip div { background: var(--color-paper); padding: 0.85rem 1rem; }
+  .fundstrip dt {
+    font-size: var(--text-eyebrow);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+    margin: 0 0 var(--space-tight);
+  }
+  .fundstrip dd {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 600;
+  }
+
+  /* ---- tabs ---------------------------------------------------------------- */
+  .tablist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: var(--space-block) 0 0;
+    border-bottom: 1px solid var(--color-rule-strong);
+  }
+  .tablist[hidden] { display: none; }
+  .tablist button {
+    appearance: none;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    padding: 0.7rem 1.1rem 0.6rem;
+    font-family: var(--font-text);
+    color: var(--color-ink-soft);
+    cursor: pointer;
+    text-align: left;
+    display: grid;
+    gap: 0.1rem;
+    transition: color var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out);
+  }
+  .tablist button:first-child { padding-left: 0; }
+  .tablist .tab-label {
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .tablist .tab-meta {
+    font-size: var(--text-eyebrow);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .tablist button:hover { color: var(--color-ink); border-bottom-color: var(--color-rule); }
+  .tablist button[aria-selected="true"] {
+    color: var(--color-ink);
+    border-bottom-color: var(--color-accent);
+  }
+  .tablist button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+  .tab-flag {
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 999px;
+    background: var(--color-held);
+    color: var(--color-held-ink);
+    letter-spacing: 0.04em;
+    text-transform: none;
+  }
+
+  section.asset-class { margin-top: var(--space-block); break-before: page; }
+  section.asset-class:first-of-type { break-before: auto; }
+  section.asset-class:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 6px; }
+  section.asset-class > h2 {
+    font-family: var(--font-display);
+    font-size: var(--text-section);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 var(--space-row);
+  }
+  .js-tabs section.asset-class > h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+  /* ---- per-tab overview ------------------------------------------------------ */
+  .section-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: var(--space-row) var(--space-block);
+    margin: 0 0 var(--space-block);
+    padding: 1rem 1.2rem;
+    background: var(--color-surface-sunk);
+    border-left: 2px solid var(--color-rule-strong);
+  }
+  .section-stats div { display: grid; gap: 0.15rem; }
+  .section-stats dt {
+    font-size: var(--text-eyebrow);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+  }
+  .section-stats dd {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .section-stats .delta { font-family: var(--font-text); font-size: var(--text-eyebrow); font-weight: 400; }
+
+  /* ---- holding cards --------------------------------------------------------- */
+  .holdings { display: grid; gap: var(--space-row); }
+  article.holding {
+    background: var(--color-surface);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    padding: 1.1rem 1.3rem 1rem;
+    break-inside: avoid;
+    transition: box-shadow var(--duration-fast) var(--ease-out),
+                border-color var(--duration-fast) var(--ease-out);
+  }
+  article.holding:hover { box-shadow: var(--shadow-card-hover); border-color: var(--color-rule-strong); }
+  article.holding > header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem var(--space-block);
+    align-items: start;
+    padding-bottom: var(--space-row);
+    border-bottom: 1px solid var(--color-rule);
+  }
+  article.holding h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.15rem;
+  }
+  article.holding .tag {
+    font-family: var(--font-mono);
+    font-size: var(--text-eyebrow);
+    color: var(--color-ink-soft);
+    margin: 0;
+  }
+  .lead { text-align: right; display: grid; gap: 0.1rem; }
+  .lead-caption {
+    font-size: var(--text-eyebrow);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+  }
+  .lead-value {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 2.125rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .lead-change { font-size: var(--text-eyebrow); }
+  .card-flag {
+    display: inline-block;
+    margin-top: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    background: var(--color-held);
+    color: var(--color-held-ink);
+  }
+
+  article.holding table { margin-top: var(--space-row); }
+  table { width: 100%; border-collapse: collapse; }
+  caption { text-align: left; font-size: var(--text-eyebrow); color: var(--color-ink-soft); padding-bottom: var(--space-tight); }
+  th, td { padding: var(--space-row) 0.5rem; border-bottom: 1px solid var(--color-rule); }
+  thead th {
+    font-size: var(--text-eyebrow);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--color-ink-soft);
+    border-bottom: 1px solid var(--color-rule-strong);
+  }
+  th[scope="row"] { font-weight: 500; text-align: left; }
+  td.num, thead th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: color-mix(in oklch, var(--color-accent) 5%, transparent); }
+  /* Colour follows meaning, not sign: see config/presentation.yaml. */
+  .good { color: var(--color-positive); }
+  .bad { color: var(--color-negative); }
+  .neutral { color: var(--color-ink-soft); }
+
+  .trace, .overridden {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    color: var(--color-accent);
+    background: none;
+    border: 0;
+    border-bottom: 1px dotted currentColor;
+    padding: 0 0 1px;
+    margin-left: 0.3rem;
+    cursor: pointer;
+    transition: color var(--duration, 120ms) ease, background-color 120ms ease;
+  }
+  .trace:hover, .overridden:hover {
+    background: color-mix(in oklch, var(--color-accent) 12%, transparent);
+    border-bottom-style: solid;
+  }
+  .trace:focus-visible, .overridden:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  .overridden { color: var(--color-held-ink); font-weight: 700; border-bottom-color: currentColor; }
+  .overridden:hover { background: color-mix(in oklch, var(--color-held-ink) 14%, transparent); }
+
+  /* Source document viewer */
+  dialog#source-viewer {
+    width: min(72rem, 94vw);
+    max-height: 88vh;
+    padding: 0;
+    border: 1px solid var(--color-rule-strong);
+    border-radius: 2px;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    box-shadow: 0 24px 60px -12px oklch(20% 0.02 265 / 0.35);
+  }
+  dialog#source-viewer::backdrop { background: oklch(20% 0.02 265 / 0.45); }
+  .viewer-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: start;
+    padding: 1.1rem 1.4rem 0.9rem;
+    border-bottom: 1px solid var(--color-rule);
+  }
+  .viewer-head h2 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.2rem;
+    word-break: break-word;
+  }
+  .viewer-head .path {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    color: var(--color-ink-soft);
+    word-break: break-all;
+  }
+  .viewer-actions { display: flex; gap: 0.5rem; align-items: center; }
+  .viewer-actions a, .viewer-actions button {
+    font-family: var(--font-text);
+    font-size: 0.75rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--color-rule-strong);
+    border-radius: 2px;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .viewer-actions a.primary {
+    background: var(--color-rule-strong);
+    color: var(--color-paper);
+    border-color: var(--color-rule-strong);
+  }
+  .viewer-actions a:hover, .viewer-actions button:hover { background: var(--color-held); }
+  .viewer-actions a.primary:hover { background: var(--color-accent); border-color: var(--color-accent); }
+  .viewer-actions a[aria-disabled="true"] { opacity: 0.45; pointer-events: none; }
+
+  .viewer-refs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.7rem 1.4rem;
+    border-bottom: 1px solid var(--color-rule);
+  }
+  .viewer-refs button {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--color-rule);
+    border-radius: 999px;
+    background: var(--color-paper);
+    color: var(--color-ink-soft);
+    cursor: pointer;
+  }
+  .viewer-refs button[aria-current="true"] {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background: color-mix(in oklch, var(--color-accent) 8%, transparent);
+    font-weight: 700;
+  }
+
+  .viewer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    margin: 0;
+    padding: 0.7rem 1.4rem;
+    font-size: var(--text-eyebrow);
+    color: var(--color-ink-soft);
+    border-bottom: 1px solid var(--color-rule);
+  }
+  .viewer-meta div { display: flex; gap: 0.4rem; }
+  .viewer-meta dt { text-transform: uppercase; letter-spacing: 0.1em; }
+  .viewer-meta dd { margin: 0; font-family: var(--font-mono); color: var(--color-ink); }
+
+  .viewer-body { overflow: auto; max-height: 56vh; padding: 1.1rem 1.4rem 1.5rem; }
+  .viewer-body pre {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    margin: 0;
+  }
+  table.grid { border-collapse: collapse; font-size: 0.75rem; width: auto; min-width: 100%; }
+  table.grid th, table.grid td {
+    border: 1px solid var(--color-rule);
+    padding: 0.3rem 0.55rem;
+    text-align: left;
+    white-space: nowrap;
+    font-weight: 400;
+  }
+  table.grid thead th, table.grid tbody th.rownum {
+    background: color-mix(in oklch, var(--color-rule) 35%, var(--color-paper));
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    color: var(--color-ink-soft);
+    text-align: center;
+    position: sticky;
+    top: 0;
+  }
+  table.grid tbody th.rownum { position: static; }
+  table.grid td.hit {
+    background: var(--color-held);
+    outline: 2px solid var(--color-held-ink);
+    outline-offset: -2px;
+    font-weight: 700;
+  }
+  .viewer-foot {
+    padding: 0.8rem 1.4rem 1.1rem;
+    border-top: 1px solid var(--color-rule);
+    font-size: var(--text-eyebrow);
+    color: var(--color-ink-soft);
+  }
+
+  details.traces { margin-top: var(--space-row); font-size: 0.75rem; }
+  details.traces summary {
+    cursor: pointer;
+    color: var(--color-accent);
+    font-size: var(--text-eyebrow);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  details.traces summary:hover { text-decoration: underline; }
+  details.traces ul { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--color-ink-soft); padding-left: 1.25rem; }
+
+  .notes { margin-top: var(--space-section); max-width: var(--measure); break-before: page; }
+  .notes h2 {
+    font-family: var(--font-display);
+    font-size: var(--text-section);
+    margin: 0 0 var(--space-row);
+    padding-bottom: var(--space-tight);
+    border-bottom: 1px solid var(--color-rule-strong);
+  }
+  .notes h3 {
+    font-size: var(--text-eyebrow);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+    margin: var(--space-block) 0 var(--space-tight);
+  }
+  .notes ul { margin: 0; padding-left: 1.1rem; }
+  .notes li { margin-bottom: var(--space-tight); }
+  .notes .empty { color: var(--color-ink-soft); font-style: italic; }
+
+  footer {
+    margin-top: var(--space-section);
+    padding-top: var(--space-row);
+    border-top: 1px solid var(--color-rule);
+    font-size: var(--text-eyebrow);
+    color: var(--color-ink-soft);
+    max-width: var(--measure);
+  }
+
+  @media (max-width: 40rem) {
+    article.holding > header { grid-template-columns: 1fr; }
+    .lead { text-align: left; }
+    .tablist button { padding-left: 0.6rem; padding-right: 0.6rem; }
+  }
+
+  @media print {
+    /* Tabs are a screen affordance. On paper every asset class prints, one per page. */
+    .tablist { display: none; }
+    [role="tabpanel"][hidden] { display: block !important; }
+    .js-tabs section.asset-class > h2 {
+      position: static; width: auto; height: auto; clip-path: none;
+      padding-bottom: var(--space-tight); border-bottom: 1px solid var(--color-rule-strong);
+    }
+    article.holding { box-shadow: none; border-color: var(--color-rule); }
+    body { padding: 0; font-size: 10pt; }
+    tbody tr:hover { background: none; }
+    details.traces { display: none; }
+    .trace, .overridden { border: 0; color: var(--color-ink-soft); }
+    dialog#source-viewer { display: none; }
+  }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div>
+    <p class="eyebrow">Internal portfolio monitoring — synthetic data</p>
+    <h1>{{ summary.fund_name }}</h1>
+    <p class="period">Quarter ended {{ summary.period_end }} · compared with {{ summary.prior_period_label }}</p>
+  </div>
+  <p class="runmeta">
+    run <b>{{ summary.run_id }}</b><br>
+    built {{ summary.generated_at }}<br>
+    commit {{ summary.git_commit[:12] }}<br>
+    gate <b>{{ "PASS" if summary.gate_passed else "HELD" }}</b>
+  </p>
+</header>
+
+<p class="banner {{ '' if summary.gate_passed else 'held' }}">
+  {% if summary.gate_passed %}
+  <strong>GATE PASS.</strong> No blocking exception was open when this summary was built.
+  {{ summary.resolutions | length }} reviewer decision(s) applied this period, listed in the notes.
+  {% else %}
+  <strong>GATE HELD.</strong> This summary should not exist; blocking exceptions were open.
+  {% endif %}
+</p>
+
+<dl class="fundstrip">
+  <div>
+    <dt>Commitments</dt>
+    <dd>{{ summary.fund_panel.commitments.value | money("USD") }}
+      <button type="button" class="trace" data-traces='{{ summary.fund_panel.commitments | traces }}'
+              title="{{ summary.fund_panel.commitments.traces | map(attribute='label') | join('&#10;') }}">trace</button>
+    </dd>
+  </div>
+  <div>
+    <dt>Called to date</dt>
+    <dd>{{ summary.fund_panel.called.value | money("USD") }}
+      <button type="button" class="trace" data-traces='{{ summary.fund_panel.called | traces }}'
+              title="{{ summary.fund_panel.called.traces | map(attribute='label') | join('&#10;') }}">trace</button>
+    </dd>
+  </div>
+  <div>
+    <dt>Called %</dt>
+    <dd>{{ summary.fund_panel.called_pct | money("PCT") }}</dd>
+  </div>
+  <div>
+    <dt>Limited partners</dt>
+    <dd>{{ summary.fund_panel.lp_count }}</dd>
+  </div>
+</dl>
+
+<main>
+  <!-- Rendered hidden: without JavaScript the page stays a single readable document and
+       every asset class is visible. The script below turns this into a tablist. -->
+  <div class="tablist" role="tablist" aria-label="Portfolio by asset class" id="asset-tabs" hidden>
+    {% for section in summary.sections %}
+    <button type="button" role="tab"
+            id="tab-{{ section.asset_class }}"
+            aria-controls="panel-{{ section.asset_class }}"
+            aria-selected="{{ 'true' if loop.first else 'false' }}"
+            tabindex="{{ '0' if loop.first else '-1' }}">
+      <span class="tab-label">{{ section.short_label }}</span>
+      <span class="tab-meta">
+        {{ section.panels | length }} {{ section.unit_noun }}
+        {% if section.corrections %}
+        <span class="tab-flag">{{ section.corrections }} corrected</span>
+        {% endif %}
+      </span>
+    </button>
+    {% endfor %}
+  </div>
+
+{% for section in summary.sections %}
+  <section class="asset-class" role="tabpanel" tabindex="0"
+           id="panel-{{ section.asset_class }}"
+           aria-labelledby="tab-{{ section.asset_class }}">
+    <h2>{{ section.label }}</h2>
+    {% if not section.panels %}
+      <p class="empty">No holdings reported for this period.</p>
+    {% else %}
+    <dl class="section-stats">
+      <div>
+        <dt>{{ section.unit_noun | capitalize }}</dt>
+        <dd>{{ section.panels | length }}</dd>
+      </div>
+      {% if section.invested %}
+      <div>
+        <dt>Invested capital</dt>
+        <dd>{{ section.invested.value | money("USD") }}
+          <button type="button" class="trace" data-traces='{{ section.invested | traces }}'
+                  title="{{ section.invested.traces | map(attribute='label') | join('&#10;') }}">trace</button>
+        </dd>
+      </div>
+      {% endif %}
+      {% for stat in section.stats %}
+      <div>
+        <dt>{{ stat.label }} · {{ summary.period_label }}</dt>
+        <dd>{{ stat.traced.value | money(stat.traced.unit) }}
+          <button type="button" class="trace" data-traces='{{ stat.traced | traces }}'
+                  title="{{ stat.traced.traces | map(attribute='label') | join('&#10;') }}">trace</button>
+          <span class="delta {{ stat.sentiment }}">{{ stat.change_display }}</span>
+        </dd>
+      </div>
+      {% endfor %}
+    </dl>
+
+    <div class="holdings">
+    {% for panel in section.panels %}
+      <article class="holding">
+        <header>
+          <div>
+            <h3>{{ panel.name }}</h3>
+            <p class="tag">{{ panel.holding_id }} · invested {{ panel.invested_capital.value | money("USD") }}<button
+                  type="button" class="trace" data-traces='{{ panel.invested_capital | traces }}'
+                  title="{{ panel.invested_capital.traces | map(attribute='label') | join('&#10;') }}">trace</button> · entered {{ panel.entry_date }}</p>
+            {% if panel.corrections %}
+            <span class="card-flag">{{ panel.corrections }} figure(s) corrected by a reviewer</span>
+            {% endif %}
+          </div>
+          {% if panel.headline and panel.headline.current.value is not none %}
+          <div class="lead">
+            <span class="lead-caption">{{ section.headline_caption }} · {{ summary.period_label }}</span>
+            <span class="lead-value">{{ panel.headline.current.value | money(panel.headline.unit) }}</span>
+            <span class="lead-change {{ panel.headline.sentiment }}">{{ panel.headline.change_display }} vs {{ summary.prior_period_label }}</span>
+          </div>
+          {% endif %}
+        </header>
+        <table>
+          <caption>Select a trace marker to open the source document at the cell behind the figure.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Metric</th>
+              <th scope="col" class="num">{{ summary.prior_period_label }}</th>
+              <th scope="col" class="num">{{ summary.period_label }}</th>
+              <th scope="col" class="num">QoQ</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for line in panel.lines %}
+            <tr>
+              <th scope="row">{{ line.label }}</th>
+              <td class="num">{{ line.prior.value | money(line.unit) }}</td>
+              <td class="num">
+                {{ line.current.value | money(line.unit) }}
+                <button type="button" class="trace" data-traces='{{ line.current | traces }}'
+                        title="{{ line.current.traces | map(attribute='label') | join('&#10;') }}">trace</button>
+                {% if line.current.overridden %}
+                <button type="button" class="overridden" data-traces='{{ line.current | traces }}'
+                        data-focus="resolution" title="{{ line.current.override_note }}">override</button>
+                {% endif %}
+              </td>
+              <td class="num {{ line.sentiment }}">{{ line.change_display }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <details class="traces">
+          <summary>Full lineage for {{ panel.holding_id }}</summary>
+          <ul>
+          {% for line in panel.lines %}
+            {% for trace in line.current.traces %}
+            <li>{{ line.metric }} — {{ trace.label }}</li>
+            {% endfor %}
+          {% endfor %}
+          </ul>
+        </details>
+      </article>
+    {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+{% endfor %}
+</main>
+
+<section class="notes" aria-labelledby="h-notes">
+  <h2 id="h-notes">Controls and reviewer notes</h2>
+
+  <h3>Reviewer decisions applied this period</h3>
+  {% if summary.resolutions %}
+  <ul>
+    {% for resolution in summary.resolutions %}
+    <li><strong>{{ resolution.exception_id }}</strong> — {{ resolution.decision }} by {{ resolution.reviewer }} on {{ resolution.date }}. {{ resolution.rationale }}{% if resolution.detail %} <em>{{ resolution.detail }}</em>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">None. No exception required a reviewer decision this period.</p>
+  {% endif %}
+
+  <h3>Open warnings</h3>
+  {% if summary.warnings %}
+  <ul>{% for warning in summary.warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
+  {% else %}
+  <p class="empty">None open.</p>
+  {% endif %}
+
+  <h3>Holdings excluded from this summary</h3>
+  {% if summary.excluded %}
+  <ul>{% for item in summary.excluded %}<li>{{ item }}</li>{% endfor %}</ul>
+  {% else %}
+  <p class="empty">None. Every holding is included.</p>
+  {% endif %}
+
+  <h3>What this run did not check</h3>
+  {% if summary.not_checked %}
+  <ul>{% for item in summary.not_checked %}<li>{{ item }}</li>{% endfor %}</ul>
+  {% else %}
+  <p class="empty">Every configured rule was evaluated for every holding.</p>
+  {% endif %}
+</section>
+
+<footer>
+  <p>
+    Synthetic data. The fund, holdings, and limited partners are invented and resemble no real entity.
+    Every figure above is derived from a file in <code>data/raw/</code> or from a recorded reviewer
+    resolution; raw files are never modified by this pipeline. Valuation marks, exception sign-off,
+    and anything LP-facing stay with a person — this run only prepares and checks the evidence.
+  </p>
+</footer>
+
+
+<script>
+(function () {
+  "use strict";
+  // Progressive enhancement: the markup above is a complete document on its own. This turns
+  // it into tabs, and prints as the full document regardless (see the print styles).
+  var tablist = document.getElementById("asset-tabs");
+  if (!tablist) { return; }
+  var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+  if (tabs.length < 2) { return; }
+
+  var panels = tabs.map(function (tab) {
+    return document.getElementById(tab.getAttribute("aria-controls"));
+  });
+  if (panels.some(function (panel) { return !panel; })) { return; }
+
+  document.body.classList.add("js-tabs");
+  tablist.hidden = false;
+
+  function select(index, moveFocus, recordInUrl) {
+    tabs.forEach(function (tab, position) {
+      var active = position === index;
+      tab.setAttribute("aria-selected", active ? "true" : "false");
+      tab.tabIndex = active ? 0 : -1;
+      panels[position].hidden = !active;
+    });
+    if (moveFocus) { tabs[index].focus(); }
+    // Only on interaction: writing the fragment on load would scroll the reader past the
+    // masthead before they have seen it.
+    if (recordInUrl && window.history && window.history.replaceState) {
+      window.history.replaceState(null, "", "#" + panels[index].id);
+    }
+  }
+
+  tabs.forEach(function (tab, index) {
+    tab.addEventListener("click", function () { select(index, false, true); });
+    tab.addEventListener("keydown", function (event) {
+      var next = null;
+      if (event.key === "ArrowRight") { next = (index + 1) % tabs.length; }
+      if (event.key === "ArrowLeft") { next = (index - 1 + tabs.length) % tabs.length; }
+      if (event.key === "Home") { next = 0; }
+      if (event.key === "End") { next = tabs.length - 1; }
+      if (next !== null) { event.preventDefault(); select(next, true, true); }
+    });
+  });
+
+  // A link or a bookmark can open the page straight onto one asset class.
+  function fromHash() {
+    var target = window.location.hash.replace("#", "");
+    for (var i = 0; i < panels.length; i += 1) {
+      if (panels[i].id === target || tabs[i].id === target) { return i; }
+    }
+    return 0;
+  }
+  select(fromHash(), false, false);
+  window.addEventListener("hashchange", function () { select(fromHash(), false, false); });
+
+  // Opening a trace from a hidden panel would be confusing; keep print and search honest by
+  // revealing every panel while the browser is printing.
+  if (window.matchMedia) {
+    var printing = window.matchMedia("print");
+    var reveal = function (event) {
+      if (event.matches) { panels.forEach(function (panel) { panel.hidden = false; }); }
+      else {
+        var active = 0;
+        tabs.forEach(function (t, i) { if (t.getAttribute("aria-selected") === "true") { active = i; } });
+        select(active, false, false);
+      }
+    };
+    if (printing.addEventListener) { printing.addEventListener("change", reveal); }
+  }
+})();
+</script>
+
+<dialog id="source-viewer" aria-labelledby="viewer-title">
+  <div class="viewer-head">
+    <div>
+      <h2 id="viewer-title">Source document</h2>
+      <p class="path" id="viewer-path"></p>
+    </div>
+    <div class="viewer-actions">
+      <a id="viewer-download" class="primary" download>Download source file</a>
+      <button type="button" id="viewer-close" autofocus>Close</button>
+    </div>
+  </div>
+  <div class="viewer-refs" id="viewer-refs" role="group" aria-label="Origins of this figure"></div>
+  <dl class="viewer-meta" id="viewer-meta"></dl>
+  <div class="viewer-body" id="viewer-body"></div>
+  <p class="viewer-foot">
+    This is a read-only preview of the file as it was ingested. The SHA-256 above is the hash
+    recorded in the run manifest, so the downloaded copy can be checked against it.
+  </p>
+</dialog>
+
+<script id="pmp-source-index" type="application/json">{{ source_index_json }}</script>
+<script>
+(function () {
+  "use strict";
+  var INDEX = JSON.parse(document.getElementById("pmp-source-index").textContent);
+  var dialog = document.getElementById("source-viewer");
+  var titleEl = document.getElementById("viewer-title");
+  var pathEl = document.getElementById("viewer-path");
+  var refsEl = document.getElementById("viewer-refs");
+  var metaEl = document.getElementById("viewer-meta");
+  var bodyEl = document.getElementById("viewer-body");
+  var downloadEl = document.getElementById("viewer-download");
+  var opener = null;
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text !== undefined && text !== null) { node.textContent = String(text); }
+    return node;
+  }
+
+  function meta(pairs) {
+    metaEl.textContent = "";
+    pairs.forEach(function (pair) {
+      if (!pair[1]) { return; }
+      var wrap = document.createElement("div");
+      wrap.appendChild(el("dt", null, pair[0]));
+      wrap.appendChild(el("dd", null, pair[1]));
+      metaEl.appendChild(wrap);
+    });
+  }
+
+  function pickSheet(doc, trace) {
+    if (!doc.sheets || !doc.sheets.length) { return null; }
+    if (!trace.sheet) { return doc.sheets[0]; }
+    for (var i = 0; i < doc.sheets.length; i += 1) {
+      if (doc.sheets[i].name === trace.sheet) { return doc.sheets[i]; }
+    }
+    return doc.sheets[0];
+  }
+
+  function renderGrid(doc, sheet, trace) {
+    var table = el("table", "grid");
+    var thead = document.createElement("thead");
+    var headRow = document.createElement("tr");
+    headRow.appendChild(el("th", "rownum", ""));
+    sheet.columns.forEach(function (column) { headRow.appendChild(el("th", null, column)); });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    // A delimited file shows its header in the column strip, so the body starts at row 2.
+    var startIndex = doc.kind === "delimited" ? 1 : 0;
+    var tbody = document.createElement("tbody");
+    var hitCell = null;
+    for (var i = startIndex; i < sheet.rows.length; i += 1) {
+      var tr = document.createElement("tr");
+      tr.appendChild(el("th", "rownum", i + 1));
+      sheet.rows[i].forEach(function (cell) {
+        var td = el("td", null, cell.text);
+        if (cell.ref && cell.ref === trace.ref) { td.className = "hit"; hitCell = td; }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    bodyEl.textContent = "";
+    bodyEl.appendChild(table);
+    if (sheet.truncated) {
+      bodyEl.appendChild(el("p", null, "Preview truncated; download the file for all rows."));
+    }
+    if (hitCell) {
+      hitCell.scrollIntoView({ block: "center", inline: "center" });
+    } else {
+      bodyEl.insertBefore(
+        el("p", null, "The cited cell " + trace.ref + " is not present in this file version."),
+        bodyEl.firstChild
+      );
+    }
+  }
+
+  function renderResolution(trace) {
+    var record = INDEX.resolutions[trace.exception_id];
+    if (!record) {
+      bodyEl.textContent = "";
+      bodyEl.appendChild(el("p", null, "No resolution record found for " + trace.exception_id + "."));
+      return null;
+    }
+    titleEl.textContent = "Reviewer decision — " + trace.exception_id;
+    pathEl.textContent = record.file;
+    meta([
+      ["Decision", record.decision],
+      ["Reviewer", record.reviewer],
+      ["Date", record.date],
+      ["File", record.file]
+    ]);
+    bodyEl.textContent = "";
+    bodyEl.appendChild(el("pre", null, record.yaml));
+    return record.download;
+  }
+
+  function renderText(doc, trace) {
+    bodyEl.textContent = "";
+    bodyEl.appendChild(el("pre", null, doc.text || ""));
+  }
+
+  function render(traces, activeIndex) {
+    var trace = traces[activeIndex];
+    var doc = INDEX.files[trace.file];
+    var download = null;
+
+    refsEl.textContent = "";
+    if (traces.length > 1) {
+      traces.forEach(function (candidate, index) {
+        var label = candidate.kind === "resolution"
+          ? "decision " + candidate.exception_id
+          : (candidate.sheet ? candidate.sheet + "!" : "") + candidate.ref;
+        var button = el("button", null, label);
+        button.type = "button";
+        button.setAttribute("aria-current", index === activeIndex ? "true" : "false");
+        button.addEventListener("click", function () { render(traces, index); });
+        refsEl.appendChild(button);
+      });
+      refsEl.style.display = "";
+    } else {
+      refsEl.style.display = "none";
+    }
+
+    if (trace.kind === "resolution") {
+      download = renderResolution(trace);
+    } else if (doc) {
+      titleEl.textContent = doc.filename;
+      pathEl.textContent = trace.file;
+      download = doc.download;
+      meta([
+        ["Sheet", trace.sheet || (doc.kind === "delimited" ? "(csv)" : "")],
+        ["Cell", trace.ref],
+        ["SHA-256", doc.sha256],
+        ["Type", doc.kind]
+      ]);
+      var sheet = pickSheet(doc, trace);
+      if (sheet) { renderGrid(doc, sheet, trace); } else { renderText(doc, trace); }
+    } else {
+      titleEl.textContent = trace.file || "Source unavailable";
+      pathEl.textContent = trace.label || "";
+      meta([["Cell", trace.ref]]);
+      bodyEl.textContent = "";
+      bodyEl.appendChild(el("p", null, "This document was not included in the run's source pack."));
+    }
+
+    if (download) {
+      downloadEl.href = download;
+      downloadEl.removeAttribute("aria-disabled");
+      downloadEl.textContent = "Download source file";
+    } else {
+      downloadEl.removeAttribute("href");
+      downloadEl.setAttribute("aria-disabled", "true");
+      downloadEl.textContent = "Source copy not included";
+    }
+  }
+
+  function open(button) {
+    var traces = JSON.parse(button.getAttribute("data-traces"));
+    if (!traces.length) { return; }
+    var start = 0;
+    if (button.getAttribute("data-focus") === "resolution") {
+      traces.forEach(function (trace, index) {
+        if (trace.kind === "resolution") { start = index; }
+      });
+    }
+    opener = button;
+    render(traces, start);
+    if (typeof dialog.showModal === "function") { dialog.showModal(); } else { dialog.open = true; }
+  }
+
+  document.addEventListener("click", function (event) {
+    var button = event.target.closest(".trace, .overridden");
+    if (button) { event.preventDefault(); open(button); return; }
+    if (event.target === dialog) { dialog.close(); }
+  });
+
+  document.getElementById("viewer-close").addEventListener("click", function () { dialog.close(); });
+  dialog.addEventListener("close", function () { if (opener) { opener.focus(); opener = null; } });
+})();
+</script>
+</body>
+</html>

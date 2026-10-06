@@ -1,0 +1,3 @@
+# Human decisions on exceptions. Empty until a reviewer signs off.
+# See docs/RUNBOOK.md for the decision types and config/resolutions.demo.yaml for examples.
+resolutions: []

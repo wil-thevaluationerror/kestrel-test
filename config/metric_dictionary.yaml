@@ -1,0 +1,24 @@
+# The canonical metric dictionary. Part of the data contract: changing a name, unit, or
+# frequency here changes what every downstream rule and report means, so it needs a
+# DECISIONS.md entry.
+metrics:
+  real_estate:
+    revenue:        {unit: USD, frequency: quarterly, label: "Revenue"}
+    opex:           {unit: USD, frequency: quarterly, label: "Operating expenses"}
+    noi:            {unit: USD, frequency: quarterly, label: "Net operating income"}
+    occupancy_pct:  {unit: PCT, frequency: quarterly, label: "Occupancy"}
+    debt_balance:   {unit: USD, frequency: quarterly, label: "Debt balance"}
+  growth_equity:
+    revenue:               {unit: USD, frequency: quarterly, label: "Revenue"}
+    gross_profit:          {unit: USD, frequency: quarterly, label: "Gross profit"}
+    ebitda:                {unit: USD, frequency: quarterly, label: "EBITDA"}
+    cash_begin:            {unit: USD, frequency: quarterly, label: "Beginning cash"}
+    cash_flow_operating:   {unit: USD, frequency: quarterly, label: "Cash from operations"}
+    cash_flow_investing:   {unit: USD, frequency: quarterly, label: "Cash from investing"}
+    cash_flow_financing:   {unit: USD, frequency: quarterly, label: "Cash from financing"}
+    cash_end:              {unit: USD, frequency: quarterly, label: "Ending cash"}
+    debt_balance:          {unit: USD, frequency: quarterly, label: "Debt balance"}
+  growth_venture:
+    revenue:   {unit: USD, frequency: monthly,   label: "Revenue"}
+    net_burn:  {unit: USD, frequency: quarterly, label: "Net burn"}
+    cash_end:  {unit: USD, frequency: quarterly, label: "Ending cash"}

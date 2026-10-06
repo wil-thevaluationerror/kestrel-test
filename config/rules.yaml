@@ -1,0 +1,93 @@
+# Rule IDs, severity, and tolerances. Thresholds live here and never in code, so changing a
+# tolerance is a reviewable config diff rather than a code change.
+#
+# severity: block = the gate holds the fund report until a resolution exists.
+#           warn  = the report runs, and the warning stays on the summary until a reviewer
+#                   adds commentary.
+rules:
+  R01:
+    enabled: false          # v1.1 — see docs/FAILURE_MODES.md
+    severity: block
+    name: "Period integrity"
+    description: "Dates inside the file match the reporting period it was submitted for."
+    tolerance: {kind: exact}
+
+  R02:
+    enabled: false          # v1.1 — until then a renamed label is caught only by I01
+    severity: block
+    name: "Completeness"
+    description: "Every expected metric and month is present for the period."
+    tolerance: {kind: none_missing}
+
+  R03:
+    enabled: true
+    severity: block
+    name: "Cash bridge ties"
+    description: "Beginning cash + operating + investing + financing flows = ending cash."
+    tolerance: {kind: absolute_usd, value: 1.0}
+
+  R04:
+    enabled: true
+    severity: block
+    name: "Cap table sums"
+    description: "Ownership across all holders sums to 100%."
+    tolerance: {kind: absolute_pct, value: 0.01}
+
+  R05:
+    enabled: false          # v1.1
+    severity: block
+    name: "Real estate internal consistency"
+    description: "NOI = revenue - opex; occupancy between 0% and 100%."
+    tolerance: {kind: absolute_usd, value: 1.0}
+
+  R06:
+    enabled: false          # v1.1
+    severity: warn
+    name: "QoQ variance"
+    description: "Revenue or cash change above threshold requires reviewer commentary."
+    tolerance: {kind: relative_pct, value: 35.0}
+
+  R07:
+    enabled: true
+    severity: block
+    name: "Unit scale anomaly"
+    description: "A USD metric moves by roughly 1,000x QoQ with no declared scale change."
+    tolerance: {kind: ratio_band, low: 500.0, high: 2000.0}
+
+  R08:
+    enabled: true
+    severity: block
+    name: "LP reconciliation"
+    description: "Sum of LP called capital = fund called capital."
+    tolerance: {kind: absolute_usd, value: 1.0}
+
+  I01:
+    enabled: true
+    severity: block
+    name: "Unmapped label"
+    description: "A source label has no entry in the template mapping."
+    tolerance: {kind: exact}
+
+  I02:
+    enabled: true
+    severity: block
+    name: "Duplicate submission"
+    description: "This file hash was already ingested for this holding and period."
+    tolerance: {kind: exact}
+
+  RES-UNANCHORED:
+    # A safety check on the resolution file itself, not a check on reported data. It is always
+    # evaluated and the override is never applied, because an override with no exception behind
+    # it is an unreviewed edit to a reported number. Only the severity is configurable here.
+    enabled: true
+    severity: block
+    name: "Unanchored correction"
+    description: "A 'correct' resolution references an exception the data as filed never raised."
+    tolerance: {kind: exact}
+
+  RES-STALE:
+    enabled: true
+    severity: warn
+    name: "Stale resolution"
+    description: "A resolution references an exception this run did not raise, or an override that matched no canonical row."
+    tolerance: {kind: exact}

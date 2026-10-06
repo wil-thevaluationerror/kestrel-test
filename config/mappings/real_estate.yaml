@@ -1,0 +1,16 @@
+# Source label -> canonical metric for the property operating summary template.
+template: real_estate
+mapping_version: "1.0.0"
+# Declared unit scale for every USD metric in this template. An undeclared change in the
+# source file is exactly what R07 exists to catch.
+unit_scale: dollars
+scale_overrides: []        # [{period: 2026Q2, scale: thousands}] once a change is confirmed
+labels:
+  "Rental Revenue":          {metric: revenue}
+  "Operating Expenses":      {metric: opex}
+  "Net Operating Income":    {metric: noi}
+  "Occupancy (%)":           {metric: occupancy_pct}
+  "Mortgage Balance":        {metric: debt_balance}
+# Header and metadata labels that carry no metric. Listed explicitly so that a label
+# disappearing from this list raises I01 rather than being skipped by a guess.
+ignore_labels: ["Property", "Period Ending", "Reporting Currency", "Line Item"]
